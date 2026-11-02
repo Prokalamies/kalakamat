@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#101a15">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="KalaKamat">
+<title>KalaKamat</title>
+<style>
+:root{--bg:#101a15;--panel:#1b2920;--panel2:#26362b;--green:#91b879;--text:#f0f1e9;--muted:#aab6a8;--line:#354638;--red:#d87970}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:35px}
+header{padding:26px 19px 20px;background:linear-gradient(145deg,#294331,#101a15);border-bottom:1px solid var(--line)}
+.logo{font-size:30px;font-weight:850;letter-spacing:-1px}.logo span{color:var(--green)}
+header p{color:var(--muted);margin:5px 0 0;font-size:13px}
+main{max-width:680px;margin:auto;padding:16px}
+h2{font-size:20px;margin:17px 0 9px}h3{font-size:15px;margin:0}
+.muted{color:var(--muted);font-size:13px}
+.tabs{display:flex;gap:7px;overflow-x:auto;padding:2px 0 13px;scrollbar-width:none}
+.tabs button,.secondary,.action{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:11px;padding:10px 13px;white-space:nowrap}
+.tabs button.active,.primary{background:var(--green);color:#142017;border-color:var(--green);font-weight:700}
+.primary{border:0;border-radius:10px;padding:12px 15px}
+.secondary{font-size:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin:11px 0}
+.category{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;background:var(--panel);color:var(--text);border:1px solid var(--line);padding:16px;border-radius:13px;margin:8px 0;font-size:15px}
+input,select{width:100%;padding:12px;border-radius:10px;border:1px solid var(--line);background:#111d16;color:var(--text);font-size:16px;margin:5px 0 9px}
+.row{display:flex;gap:8px;align-items:center}.row input{min-width:0;flex:1}
+.item{display:flex;align-items:center;gap:10px;padding:11px 2px;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}.item input[type=checkbox]{width:21px;height:21px;accent-color:var(--green);margin:0;flex-shrink:0}
+.item .name{flex:1;overflow-wrap:anywhere;font-size:14px}.item.done .name{text-decoration:line-through;color:var(--muted)}
+.item button{border:0;background:var(--panel2);color:var(--text);border-radius:7px;padding:7px 9px}
+.progress{height:8px;background:#344337;border-radius:8px;overflow:hidden;margin:11px 0}.progress div{height:100%;background:var(--green)}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}
+.hidden{display:none!important}.danger{color:#ffd4ce!important;background:#492b29!important}
+footer{text-align:center;color:var(--muted);font-size:12px;padding:20px}
+.note{color:var(--green);font-size:13px;min-height:18px}
+</style>
+</head>
+<body>
+<header><div class="logo">🎣 Kala<span>Kamat</span></div><p>Kaikki mukaan. Hyvät reissut alkavat valmistelusta.</p></header>
+<main>
+ <nav class="tabs" id="tabs"></nav>
+ <section id="content"></section>
+</main>
+<footer>KalaKamat · Omat kalastus- ja retkeilyvarusteet</footer>
+<script>
+const fishing={
+ "Pilkille":[
+  ["Pilkkivälineet",["Pilkkivapa","Pilkkikela","Pilkkisiimat","Pilkkejä","Tasapainopilkkejä","Mormuskoita","Syötit","Kaira","Varaterät"]],
+  ["Turvallisuus ja istuminen",["Jäänaskalit","Jääsauva","Heittoköysi","Pilkkijakkara","Jääkauha","Ämpäri"]],
+  ["Muut tarvikkeet",["Kaikuluotain","Pihdit","Puukko","Mittanauha","Otsalamppu"]],
+  ["Vaatteet ja eväät",["Talvihaalari","Lämpimät kengät","Pipo","Hanskat","Villasukat","Termospullo","Eväsleivät","Puhelin","Varavirtalähde"]]
+ ],
+ "Siian onginta":[
+  ["Onkivälineet",["Siianonkivapa","Kela","Siimat","Koukut","Painot","Leikarit","Kohot","Varakoukut"]],
+  ["Syötit ja tarvikkeet",["Madot","Kärpäsentoukat","Syöttirasia","Syöttineula","Pihdit","Sakset"]],
+  ["Muut",["Haavi","Ämpäri","Puukko","Mittanauha","Eväsleivät","Juomapullo","Puhelin"]]
+ ],
+ "Virvelöinti":[
+  ["Kalastusvälineet",["Virveli","Avokela","Varapuola","Siimat","Vieherasia","Lipat","Vaaput","Jigit","Jigipäät","Lukot ja leikarit"]],
+  ["Muut kalastustarvikkeet",["Haavi","Pihdit","Sakset","Puukko","Mittanauha","Vapapussi"]],
+  ["Vaatteet ja muut",["Säänmukainen takki","Kumisaappaat","Lippis","Aurinkolasit","Hanskat","Puhelin","Juomapullo"]]
+ ]
+};
+const camping={
+ "Telttailu":["Teltta","Telttakaaret","Telttakiilat","Telttavasara","Makuualusta","Tarp","Narut","Pakkauspussi"],
+ "Riippumatossa yöpyminen":["Riippumatto","Hyttyssuoja","Alushuopa / underquilt","Yläpeite / topquilt","Tarppi","Kiinnitysremmit","Karabiinit","Harjanneköysi"],
+ "Ruoanlaitto ja ruokatarvikkeet":["Retkikeitin","Kaasupullo","Kattila","Paistinpannu","Muki","Ruokailuvälineet","Puukko","Sytytin","Tulitikut","Juomavesi","Juomapullo","Ruokatarvikkeet","Kahvi"],
+ "Vaatteet ja vaihtovaatteet":["Alusvaatteet","Vaihtosukat","Housut","Paita","Lämpökerrasto","Välikerros","Sadevaatteet","Pipo","Hanskat","Yövaatteet"],
+ "Nukkumisvarusteet":["Makuupussi","Makuualusta","Tyyny","Lakana","Silmämaski","Korvatulpat"],
+ "Hygienia ja ensiapu":["Hammasharja","Hammastahna","Pyyhe","WC-paperi","Käsidesi","Aurinkovoide","Hyönteiskarkote","Ensiapulaukku","Laastarit","Omat lääkkeet"],
+ "Elektroniikka ja navigointi":["Puhelin","Laturi","Varavirtalähde","Otsalamppu","Taskulamppu","GPS","Kartta","Kompassi","Kuulokkeet"],
+ "Muut retkivarusteet":["Reppu","Päiväreppu","Puukko","Monitoimityökalu","Kirves","Saha","Istuinalusta","Roskapussit","Kiikarit","Muistiinpanovälineet"]
+};
+const categories=["Pilkille","Siian onginta","Virvelöinti","Retkikamat","Omat tavarat"];
+const icons={"Pilkille":"❄️","Siian onginta":"🎣","Virvelöinti":"🐟","Retkikamat":"🏕️","Omat tavarat":"🧰"};
+let data={};let active="Pilkille";let subcategory=null;
+function seed(){
+ try{data=JSON.parse(localStorage.getItem("kalakamat-v1")||"{}")}catch(e){data={}}
+ for(const [cat,groups] of Object.entries(fishing)){
+  if(!data[cat])data[cat]=groups.map(([title,names])=>({title,items:names.map(name=>({name,checked:false}))}));
+ }
+ for(const [title,names] of Object.entries(camping)){
+  if(!data[title])data[title]=[{title,items:names.map(name=>({name,checked:false}))}];
+ }
+ if(!data["Omat tavarat"])data["Omat tavarat"]=[{title:"Omat tavarat",items:[]}];
+}
+function save(){try{localStorage.setItem("kalakamat-v1",JSON.stringify(data))}catch(e){alert("Puhelimen tallennustila ei ole käytettävissä.")}}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function render(){
+ document.getElementById("tabs").innerHTML=categories.map(c=>`<button class="${active===c?'active':''}" onclick="openTab('${c}')">${icons[c]} ${c}</button>`).join("");
+ if(active==="Retkikamat"&&!subcategory){showCamping();return}
+ if(active==="Retkikamat"&&subcategory){showList(subcategory);return}
+ showList(active);
+}
+function openTab(c){active=c;subcategory=null;render()}
+function showCamping(){
+ const el=document.getElementById("content");
+ el.innerHTML=`<h2>🏕️ Retkikamat</h2><p class="muted">Valitse retkeilyn osa-alue. Voit muokata kaikkia listoja.</p>`+
+ Object.keys(camping).map(c=>`<button class="category" onclick="subcategory='${esc(c)}';render()"><span>🏕️ ${esc(c)}</span><span>›</span></button>`).join("")+
+ `<button class="secondary" onclick="addCategory()">＋ Lisää oma retkikategoria</button>`;
+}
+function showList(key){
+ const el=document.getElementById("content");
+ if(!data[key])data[key]=[{title:key,items:[]}];
+ const groups=data[key];const all=groups.flatMap(g=>g.items);const checked=all.filter(i=>i.checked).length;
+ const pct=all.length?Math.round(checked/all.length*100):0;
+ el.innerHTML=`${active==="Retkikamat"?'<button class="secondary" onclick="subcategory=null;render()">← Retkikamat</button>':''}
+ <h2>${icons[active]||"📋"} ${esc(key)}</h2><p class="muted">Lisää, poista ja muokkaa tavaroita vapaasti.</p>
+ <div class="card"><div class="row" style="justify-content:space-between"><strong>Pakkaustilanne</strong><span class="muted">${checked}/${all.length} pakattu</span></div><div class="progress"><div style="width:${pct}%"></div></div><span class="muted">${pct}% valmiina</span></div>
+ <div class="card"><strong>＋ Lisää tavara</strong><div class="row"><input id="newItem" placeholder="Tavaran nimi" onkeydown="if(event.key==='Enter')addItem('${esc(key)}')"><button class="primary" onclick="addItem('${esc(key)}')">Lisää</button></div>
+ <select id="targetGroup">${groups.map((g,i)=>`<option value="${i}">${esc(g.title)}</option>`).join("")}</select></div>
+ ${groups.map((g,gi)=>`<div class="card"><div class="row" style="justify-content:space-between"><strong>${esc(g.title)}</strong><button class="secondary" onclick="renameGroup('${esc(key)}',${gi})">Muokkaa nimeä</button></div>
+ ${g.items.map((it,ii)=>`<div class="item ${it.checked?'done':''}"><input type="checkbox" ${it.checked?'checked':''} onchange="toggle('${esc(key)}',${gi},${ii})"><span class="name">${esc(it.name)}</span><button onclick="renameItem('${esc(key)}',${gi},${ii})" aria-label="Muokkaa">✏️</button><button class="danger" onclick="deleteItem('${esc(key)}',${gi},${ii})" aria-label="Poista">×</button></div>`).join("")}
+ </div>`).join("")}
+ <div class="actions"><button class="secondary" onclick="addGroup('${esc(key)}')">＋ Lisää alakategoria</button><button class="secondary" onclick="resetChecks('${esc(key)}')">Tyhjennä rastit</button><button class="secondary" onclick="copyList('${esc(key)}')">Kopioi lista</button></div><p class="note" id="notice"></p>`;
+}
+function refresh(key){save();showList(key)}
+function addItem(key){
+ const input=document.getElementById("newItem");const name=input.value.trim();if(!name)return;
+ let gi=Number(document.getElementById("targetGroup").value);data[key][gi].items.push({name,checked:false});refresh(key);
+}
+function toggle(k,g,i){data[k][g].items[i].checked=!data[k][g].items[i].checked;refresh(k)}
+function deleteItem(k,g,i){if(confirm("Poistetaanko tämä tavara?")){data[k][g].items.splice(i,1);refresh(k)}}
+function renameItem(k,g,i){const old=data[k][g].items[i].name;const n=prompt("Tavaran uusi nimi:",old);if(n&&n.trim()){data[k][g].items[i].name=n.trim();refresh(k)}}
+function addGroup(k=active){
+ const n=prompt("Uuden alakategorian nimi:");if(!n||!n.trim())return;
+ if(!data[k])data[k]=[];data[k].push({title:n.trim(),items:[]});save();if(k==="Retkikamat"){render()}else showList(k);
+}
+function addCategory(){
+ const n=prompt("Uuden retkikategorian nimi:");if(!n||!n.trim())return;
+ const name=n.trim();if(data[name]){alert("Tämän niminen lista on jo olemassa.");return}
+ data[name]=[{title:name,items:[]}];camping[name]=[];save();render();
+}
+function renameGroup(k,g){
+ const n=prompt("Kategorian uusi nimi:",data[k][g].title);if(n&&n.trim()){data[k][g].title=n.trim();refresh(k)}
+}
+function resetChecks(k){if(confirm("Poistetaanko kaikki pakkausrastit tästä listasta?")){data[k].forEach(g=>g.items.forEach(i=>i.checked=false));refresh(k)}}
+function copyList(k){
+ const target=prompt("Anna kopioitavalle listalle nimi:",k+" - kopio");if(!target||!target.trim())return;
+ if(data[target.trim()]){alert("Tämän niminen lista on jo olemassa.");return}
+ data[target.trim()]=JSON.parse(JSON.stringify(data[k]));save();alert("Lista kopioitu. Löydät sen Omat tavarat -osiosta tai avaamalla sivun uudelleen.");
+}
+seed();render();
+</script>
+</body>
+</html>
